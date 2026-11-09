@@ -18,6 +18,11 @@
     "noUnusedParameters": true, // error on unused function parameters
     "skipLibCheck": true, // don't type-check ".d.ts" files inside node_modules (faster)
 
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+
     // Runtime types
     "types": ["node"], // auto-include ONLY Node types (no stray umbrella types)
 

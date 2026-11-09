@@ -3,10 +3,12 @@ import errorMiddleware from "./middleware/error.middleware";
 import notFoundMiddleware from "./middleware/notFound.middleware";
 import { getTimeStamp } from "./utils/helpers";
 import { successResponse } from "./utils/responseHelpers";
+import loggerMiddleware from "./middleware/logger.middleware";
 
 const app = express();
 
 app.use(express.json());
+app.use(loggerMiddleware);
 
 // Health check
 app.get("/health", (_req: Request, res: Response) =>
