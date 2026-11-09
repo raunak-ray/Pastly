@@ -10,17 +10,25 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "biome format --write",
-    "format:check": "biome format"
+    "format:check": "biome format",
+    "db:migrate": "drizzle-kit migrate --config=./src/db/drizzle.config.ts",
+    "db:generate": "drizzle-kit generate --config=./src/db/drizzle.config.ts",
+    "db:studio": "drizzle-kit studio --config=./src/db/drizzle.config.ts"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "dotenv": "^18.0.10",
+    "drizzle-kit": "^0.31.11",
+    "drizzle-orm": "^0.45.4",
+    "express": "^5.1.0",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.6.4",
     "@types/express": "^5.0.0",
     "@types/node": "^26.6.5",
-    "tsx": "^4.23.15",
-    "typescript": "^5.9.0",
+    "@types/pg": "^8.23.1",
     "oxlint": "^1.90.0",
-    "@biomejs/biome": "^2.6.4"
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.0"
   }
 }
