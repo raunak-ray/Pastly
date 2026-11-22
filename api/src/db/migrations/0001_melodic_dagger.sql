@@ -1,0 +1,1 @@
+ALTER TABLE "tbl_pastes" ALTER COLUMN "code" SET DATA TYPE varchar(15);

@@ -13,7 +13,7 @@ export const Paste = pgTable(
   {
     id: bigserial("id", { mode: "bigint" }).primaryKey(),
 
-    code: varchar("code", { length: 10 }).notNull(),
+    code: varchar("code", { length: 15 }).notNull(),
 
     title: varchar("title", { length: 255 }),
 

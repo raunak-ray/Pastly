@@ -8,6 +8,13 @@
       "when": 1794238371098,
       "tag": "0000_add_paste_table",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795321349669,
+      "tag": "0001_melodic_dagger",
+      "breakpoints": true
     }
   ]
 }
