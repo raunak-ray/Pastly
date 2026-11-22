@@ -4,11 +4,13 @@ import notFoundMiddleware from "./middleware/notFound.middleware";
 import { getTimeStamp } from "./utils/helpers";
 import { successResponse } from "./utils/responseHelpers";
 import loggerMiddleware from "./middleware/logger.middleware";
+import PasteRoutes from "@/modules/paste/paste.route";
 
 const app = express();
 
-app.use(express.json());
+// Logging runs first so body-parser errors still get a request id and log line.
 app.use(loggerMiddleware);
+app.use(express.json());
 
 // Health check
 app.get("/health", (_req: Request, res: Response) =>
@@ -22,6 +24,8 @@ app.get("/health", (_req: Request, res: Response) =>
     },
   }),
 );
+
+app.use("/", PasteRoutes);
 
 // Unknown routes → 404, then every error gets formatted in one place.
 app.use(notFoundMiddleware);

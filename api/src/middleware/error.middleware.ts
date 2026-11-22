@@ -1,42 +1,48 @@
 import type { NextFunction, Request, Response } from "express";
+import { logger } from "@/config/logger";
 import { AppError, BadRequestError } from "../utils/AppError";
-import { getTimeStamp } from "../utils/helpers";
 import { errorResponse } from "../utils/responseHelpers";
 
-// Express error handler — needs all 4 params, that's how Express recognizes it.
+// Express recognizes an error handler by its four parameters.
 export default function errorMiddleware(
   error: unknown,
   req: Request,
   res: Response,
   _next: NextFunction,
 ): Response {
-  const timeStamp = getTimeStamp();
+  // Fallback for errors thrown before pino-http runs.
+  const log = req.log ?? logger;
 
-  // Expected errors — log them and send their details
   if (error instanceof AppError) {
-    console.log(
-      `[${timeStamp}] [ERROR] ${req.method} ${req.originalUrl} - ${error.message}`,
-    );
+    if (error.statusCode >= 500) {
+      log.error(
+        { err: error, code: error.code, statusCode: error.statusCode },
+        "request failed",
+      );
+    } else {
+      // 4xx is expected; keep it out of normal logs.
+      log.debug(
+        { code: error.code, statusCode: error.statusCode },
+        "request rejected",
+      );
+    }
 
     return errorResponse(res, {
       statusCode: error.statusCode,
       message: error.message,
       code: error.code,
-      fields: error instanceof BadRequestError ? error.fields : undefined, // fields only for bad requests
+      fields: error instanceof BadRequestError ? error.fields : undefined,
     });
   }
 
-  // Not an AppError — build a message if it's an Error, otherwise fall back
-  const message =
-    error instanceof Error ? error.message : "Internal server error";
-
-  console.error(
-    `[${timeStamp}] [ERROR] ${req.method} ${req.originalUrl} - ${message}`,
-    error,
+  log.error(
+    { err: error instanceof Error ? error : new Error(String(error)) },
+    "unhandled request error",
   );
 
+  // Don't leak SQL/storage details to the client.
   return errorResponse(res, {
     statusCode: 500,
-    message,
+    message: "Internal server error",
   });
 }

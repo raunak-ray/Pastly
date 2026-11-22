@@ -21,6 +21,7 @@ export function validate<T extends z.ZodType>(
       return next(new BadRequestError("Validation failed", fields));
     }
 
+    // Use the parsed value so defaults like expiresIn reach the controller.
     req[type] = result.data;
 
     next();

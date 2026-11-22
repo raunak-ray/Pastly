@@ -8,6 +8,10 @@ const envSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
 
+  LOG_LEVEL: z
+    .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
+    .default("info"),
+
   WORKER_ID: z.coerce.number().int().min(0).max(1023),
 
   DB_URL: z.url(),
@@ -22,6 +26,7 @@ const envSchema = z.object({
 const result = envSchema.safeParse(process.env);
 
 if (!result.success) {
+  // The logger imports `env`, so it cannot be used before validation succeeds.
   console.error("\n❌ Invalid environment variables:\n");
   console.error(z.prettifyError(result.error));
   console.error("\nCheck your .env file.\n");

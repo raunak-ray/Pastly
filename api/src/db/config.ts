@@ -1,4 +1,5 @@
 import { env } from "@/config/env";
+import { logger } from "@/config/logger";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "./schema";
@@ -18,12 +19,16 @@ export const pool = new Pool({
   application_name: "pastly-api",
 });
 
-// Log unexpected errors on idle connections
+// Pool errors happen outside a request, so log them here.
 pool.on("error", (error) => {
-  console.error("Unexpected PostgreSQL pool error:", error);
+  logger.error({ err: error }, "postgres pool error");
 });
 
 export const db = drizzle({
   client: pool,
   schema,
 });
+
+export async function closePool() {
+  await pool.end();
+}
