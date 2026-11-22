@@ -1,17 +1,10 @@
-import { AppError } from "@/utils/AppError";
-import "dotenv/config";
+import { env } from "@/config/env";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "./schema";
 
-const DB_URL = process.env.DB_URL!;
-
-if (!DB_URL) {
-  throw new AppError("DB_URL is missing in env");
-}
-
 export const pool = new Pool({
-  connectionString: DB_URL,
+  connectionString: env.DB_URL,
 
   // maximum number of connections allowed per process
   max: 10,

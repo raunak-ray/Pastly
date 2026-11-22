@@ -1,9 +1,8 @@
+import { env } from "@/config/env";
 import { AppError } from "./AppError";
 import { Snowflake } from "./snowflake";
-import "dotenv/config";
 
-const WORKER_ID = process.env.WORKER_ID! || "1";
-const snowflake = new Snowflake(Number(WORKER_ID));
+const snowflake = new Snowflake(env.WORKER_ID);
 
 export function getTimeStamp(): string {
   return new Date().toISOString();
