@@ -2,9 +2,13 @@ import { env } from "@/config/env";
 import { logger } from "@/config/logger";
 import { closePool } from "@/db/config";
 import app from "./app";
+import { startCleanupWorker } from "./services/cleanup.worker";
 
 const server = app.listen(env.PORT, () => {
   logger.info({ port: env.PORT, env: env.NODE_ENV }, "server started");
+
+  // Start the background cleanup job with the server.
+  startCleanupWorker();
 });
 
 async function shutdown(signal: NodeJS.Signals) {
