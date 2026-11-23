@@ -5,13 +5,21 @@ import {
 } from "@aws-sdk/client-s3";
 import { env } from "@/config/env";
 import { r2 } from "@/config/r2";
-import { ConflictError, NotFoundError } from "@/utils/AppError";
+import { ConflictError } from "@/utils/AppError";
 
 interface UploadFileData {
   content: string;
   language: string;
   expires_at: Date;
   title?: string;
+}
+
+// S3 errors carry the HTTP status on $metadata.
+function hasS3Status(error: unknown, statusCode: number): boolean {
+  return (
+    error instanceof S3ServiceException &&
+    error.$metadata.httpStatusCode === statusCode
+  );
 }
 
 // IfNoneMatch makes this create-only: R2 returns 412 when the key exists,
@@ -42,10 +50,7 @@ export async function uploadFile(
       etag: res.ETag,
     };
   } catch (error) {
-    if (
-      error instanceof S3ServiceException &&
-      error.$metadata.httpStatusCode === 412
-    ) {
+    if (hasS3Status(error, 412)) {
       throw new ConflictError("Paste code already exists");
     }
 
@@ -54,15 +59,17 @@ export async function uploadFile(
   }
 }
 
+// Read a paste from R2. Returns null when the object is missing.
 export async function getFile(key: string) {
   try {
     const res = await r2.send(
       new GetObjectCommand({
         Bucket: env.R2_BUCKET_NAME,
-        Key: `pastes/${key}.txt`,
+        Key: key,
       }),
     );
 
+    // An empty paste has an empty body, so default to "".
     const content = await res.Body?.transformToString("utf-8");
 
     return {
@@ -72,13 +79,9 @@ export async function getFile(key: string) {
       title: res.Metadata?.title,
     };
   } catch (error) {
-    if (
-      error instanceof S3ServiceException &&
-      error.$metadata.httpStatusCode === 404
-    ) {
-      throw new NotFoundError("Paste content not found");
-    }
+    if (hasS3Status(error, 404)) return null;
 
+    // Unexpected R2 failures are logged by the error middleware.
     throw error;
   }
 }

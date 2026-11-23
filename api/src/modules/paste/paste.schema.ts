@@ -7,4 +7,15 @@ export const createPasteSchema = z.object({
   title: z.string().nonempty(),
 });
 
+export const getPasteSchema = z.object({
+  code: z.coerce
+    .string()
+    .nonempty()
+    .max(15)
+    .regex(/^[a-zA-Z0-9]+$/, {
+      error: "Short code must contains only alphanumeric characters",
+    }),
+});
+
 export type CreatePasteType = z.infer<typeof createPasteSchema>;
+export type GetPasteType = z.infer<typeof getPasteSchema>;

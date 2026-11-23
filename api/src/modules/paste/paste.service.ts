@@ -1,6 +1,6 @@
 import type { Logger } from "pino";
-import { uploadFile } from "@/services/storage";
-import { AppError, ConflictError } from "@/utils/AppError";
+import { getFile, uploadFile } from "@/services/storage";
+import { AppError, ConflictError, NotFoundError } from "@/utils/AppError";
 import { getPasteCode } from "@/utils/helpers";
 import {
   EXPIRES_TIME_MS,
@@ -8,7 +8,7 @@ import {
   MAX_ATTEMPTS,
 } from "./paste.constant";
 import { PasteRepository } from "./paste.repository";
-import type { CreatePasteType } from "./paste.schema";
+import type { CreatePasteType, GetPasteType } from "./paste.schema";
 
 export class PasteService {
   private readonly pasteRepository: PasteRepository;
@@ -66,5 +66,36 @@ export class PasteService {
     }
 
     throw new AppError("Failed to create the paste");
+  }
+
+  // Look up the paste row, then read its content from R2.
+  async get(input: GetPasteType, log: Logger) {
+    const data = await this.pasteRepository.get(input.code);
+    console.log(data)
+
+    // Unknown or expired codes are a normal 404.
+    if (data === null) {
+      log.debug({ code: input.code }, "paste not found");
+      throw new NotFoundError("Requested paste was not found");
+    }
+
+    const objectData = await getFile(data.content_url);
+
+    // The row exists but its R2 object is missing.
+    if (objectData === null) {
+      log.error({ code: data.code }, "paste content missing from storage");
+      throw new NotFoundError("Paste content not found");
+    }
+
+    log.info({ code: data.code }, "paste retrieved");
+
+    return {
+      id: String(data.id),
+      language: data.language,
+      content: objectData.content,
+      title: data.title,
+      createdAt: data.created_at,
+      expiresAt: data.expires_at,
+    };
   }
 }
